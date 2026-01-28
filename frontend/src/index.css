@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #000000;
+  --secondary: #ffffff;
+}
+
+body {
+  @apply antialiased text-black bg-white;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply transition-colors bg-gray-300 rounded-full hover:bg-gray-400;
+}
