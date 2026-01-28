@@ -46,6 +46,15 @@ app.use('/api/cart', cartRoutes);
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/tohfey')
   .then(() => console.log('Connected to MongoDB'))
 
+// Health check endpoint
+app.get('/api/healthcheck', (req, res) => {
+  res.status(200)
+    .json({
+      status: 'OK',
+      timestamp: new Date()
+    });
+})
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
