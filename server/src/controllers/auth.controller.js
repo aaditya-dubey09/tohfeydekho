@@ -31,7 +31,7 @@ export const register = asyncHandler(async (req, res, next) => {
     res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
@@ -71,7 +71,7 @@ export const login = asyncHandler(async (req, res, next) => {
     res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
@@ -140,7 +140,7 @@ export const logout = asyncHandler(async (req, res, next) => {
         httpOnly: true,
         expires: new Date(0), // Instantly expires the cookie
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
     res.status(200).json({
@@ -161,7 +161,7 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
         httpOnly: true,
         expires: new Date(0),
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
     res.status(200).json({

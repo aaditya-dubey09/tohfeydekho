@@ -23,6 +23,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   const dispatch = useDispatch();
   const didCheckAuth = useRef(false);
+  const [loading, setLoading] = React.useState(true);
 
   useEffect(() => {
     if (didCheckAuth.current) return; // avoid double-run in React 18 StrictMode
@@ -34,10 +35,21 @@ function App() {
         dispatch(setUser(data.data));
       } catch (error) {
         dispatch(setUser(null));
+      } finally {
+        setLoading(false);
       }
     };
     checkAuth();
   }, [dispatch]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
+        <span className="ml-4 text-lg font-semibold">Loading...</span>
+      </div>
+    )
+  }
 
   return (
     <Router>
