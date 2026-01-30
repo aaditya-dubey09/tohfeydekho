@@ -39,7 +39,7 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['electronics', 'fashion', 'home_decor', 'books', 'toys', 'beauty', 'sports', 'others', 'jewelry', 'gadgets', 'accessories', 'stationery']
+    enum: ['electronics', 'fashion', 'home_decor', 'books', 'toys', 'beauty', 'sports', 'others', 'jewelry', 'gadgets', 'accessories', 'stationery', 'kitchen', 'outdoor', 'health', 'automotive', 'music', 'art_crafts', 'gaming', 'pet_supplies', 'travel', 'baby_products', 'food_beverage', 'fitness', 'office_supplies', 'gardening', 'footwear', 'watches', 'furniture', 'appliances', 'clothing' ],
   },
   images: [
     {
@@ -57,6 +57,7 @@ const productSchema = new mongoose.Schema({
   occasion_tags: [{ type: String }],    // e.g., 'birthday', 'anniversary'
   emotion_tags: [{ type: String }],     // e.g., 'romantic', 'funny'
   personality_tags: [{ type: String }], // e.g., 'techie', 'artist'
+  custom_tags: [{ type: String }],      // user-defined custom tags
 
   retailer_prices: {
     type: [retailerPriceSchema],

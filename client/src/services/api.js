@@ -47,7 +47,8 @@ export const cartAPI = {
 // Quiz API
 export const quizAPI = {
     submit: (data) => api.post('/quiz/submit', data),
-    getHistory: () => api.get('/quiz/history')
+    getHistory: () => api.get('/quiz/history'),
+    clearHistory: () => api.delete('/quiz/history')
 };
 
 // Payments API
@@ -63,6 +64,10 @@ export const adminAPI = {
     updateProduct: (id, data, config) => api.put(`/admin/products/${id}`, data, config),
     deleteProduct: (id) => api.delete(`/admin/products/${id}`),
     deleteProductImage: (id, publicId) => api.delete(`/admin/products/${id}/image/${publicId}`),
+
+    // Tag Management
+    addCustomTag: (data) => api.post('/admin/tags', data),
+    getAllTags: (tagType) => api.get('/admin/tags', { params: { tagType } }),
 
     // Analytics & Data
     getAnalytics: () => api.get('/admin/analytics'),

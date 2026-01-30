@@ -1,19 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
-import { useDispatch } from 'react-redux';
-import { addToCart } from '../redux/slices/cartSlice';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToCartThunk } from '../redux/slices/cart.thunk';
 import { productsAPI } from '../services/api';
+import ProductCard from '../components/cards/ProductCard';
 
 const Wishlist = () => {
-  const [wishlist, setWishlist] = useState([]);
+  const [wishlistProducts, setWishlistProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [localWishlist, setLocalWishlist] = useState(new Set());
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
+  const { wishlist } = useSelector(state => state.products);
+
+  useEffect(() => {
+    setLocalWishlist(new Set(wishlist?.map(p => p._id) || []));
+  }, [wishlist]);
 
   const fetchWishlist = async () => {
     try {
       const { data } = await productsAPI.getWishlist();
-      setWishlist(data.data);
+      setWishlistProducts(data.data);
       setLoading(false);
     } catch (error) {
       console.error(error);
@@ -25,12 +34,33 @@ const Wishlist = () => {
     fetchWishlist();
   }, []);
 
-  const removeWishlist = async (id) => {
+  const handleAddToCart = (productId) => {
+    dispatch(addToCartThunk(productId));
+  };
+
+  const handleWishlist = async (e, productId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
     try {
-      await productsAPI.toggleWishlist(id);
+      await productsAPI.toggleWishlist(productId);
+      setLocalWishlist(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(productId)) {
+          newSet.delete(productId);
+        } else {
+          newSet.add(productId);
+        }
+        return newSet;
+      });
       fetchWishlist();
     } catch (error) {
-      console.error(error);
+      console.error('Wishlist error:', error);
     }
   };
 
@@ -40,7 +70,7 @@ const Wishlist = () => {
     <div className="space-y-12">
       <h1 className="text-4xl font-black">Your Wishlist</h1>
 
-      {wishlist.length === 0 ? (
+      {wishlistProducts.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-[3rem]">
           <Heart size={48} className="mx-auto text-gray-300 mb-4" />
           <p className="text-xl font-bold text-gray-500">Your wishlist is empty</p>
@@ -48,31 +78,15 @@ const Wishlist = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {wishlist.map(product => (
-            <div key={product._id} className="group border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl transition-all">
-              <div className="relative aspect-square">
-                <img src={product.images[0]?.url} className="w-full h-full object-cover" alt={product.name} />
-                <button
-                  onClick={() => removeWishlist(product._id)}
-                  className="absolute top-4 right-4 p-2 bg-white rounded-full text-red-600 shadow-md"
-                >
-                  <Trash2 size={20} />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <h3 className="text-xl font-bold">{product.name}</h3>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-black">₹{product.base_price}</span>
-                  <button
-                    onClick={() => dispatch(addToCart(product))}
-                    className="p-2 rounded-full bg-black text-white"
-                  >
-                    <ShoppingCart size={20} />
-                  </button>
-                </div>
-                <Link to={`/product/${product._id}`} className="block text-center font-bold underline">View Details</Link>
-              </div>
-            </div>
+          {wishlistProducts.map(product => (
+            <ProductCard
+              key={product._id}
+              product={product}
+              variant="detailed"
+              onAddToCart={handleAddToCart}
+              onWishlist={handleWishlist}
+              isWishlisted={localWishlist.has(product._id)}
+            />
           ))}
         </div>
       )}

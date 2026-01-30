@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, BarChart3, Package, MessageSquare, X, Upload, Tag } from 'lucide-react';
+import { Plus, Trash2, Edit, BarChart3, Package, MessageSquare, X, Upload, Tag, Info } from 'lucide-react';
 import { adminAPI, productsAPI } from '../services/api';
-// TODO: Add a custom tag input field and add to all the tags to let admins add custom tags - which will then be added to the predefined tags list
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('analytics');
@@ -13,6 +12,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [input, setInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -23,6 +24,7 @@ const AdminDashboard = () => {
     occasion_tags: [],
     emotion_tags: [],
     personality_tags: [],
+    custom_tags: [],
     expert_rating: 0,
     retailer_prices: [],
     images: []
@@ -36,6 +38,53 @@ const AdminDashboard = () => {
     occasion: ['Birthday', 'Anniversary', 'Wedding', 'Graduation', 'New Job', 'Housewarming', 'Baby Shower', 'Festival', 'Just Because'],
     emotion: ['Romantic', 'Funny', 'Sentimental', 'Practical', 'Luxurious', 'Quirky', 'Thoughtful'],
     personality: ['Techie', 'Artist', 'Fitness Enthusiast', 'Foodie', 'Bookworm', 'Traveler', 'Gamer', 'Fashion Lover', 'Nature Lover', 'DIY Enthusiast']
+  };
+
+  const tags = formData.relation_tags.concat(formData.occasion_tags, formData.emotion_tags, formData.personality_tags, formData.custom_tags);
+
+  const addTag = (tag) => {
+    const normalizedTag = tag.toLowerCase().trim();
+    if (!normalizedTag || tags.includes(normalizedTag)) {
+      setInput('');
+      setShowSuggestions(false);
+      return;
+    }
+
+    // Check if it's a predefined tag or a custom tag
+    const isPredefined = Object.values(tagOptions).some(tagList => tagList.includes(tag));
+    
+    if (isPredefined) {
+      // Add to appropriate predefined tag category
+      Object.entries(tagOptions).forEach(([key, tagList]) => {
+        if (tagList.includes(tag)) {
+          const tagTypeKey = key + '_tags';
+          setFormData(prev => ({
+            ...prev,
+            [tagTypeKey]: [...prev[tagTypeKey], tag]
+          }));
+        }
+      });
+    } else {
+      // Add to custom tags
+      setFormData(prev => ({
+        ...prev,
+        custom_tags: [...prev.custom_tags, normalizedTag]
+      }));
+    }
+    
+    setInput('');
+    setShowSuggestions(false);
+  };
+
+  const removeTag = (tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      relation_tags: prev.relation_tags.filter(t => t !== tagToRemove),
+      occasion_tags: prev.occasion_tags.filter(t => t !== tagToRemove),
+      emotion_tags: prev.emotion_tags.filter(t => t !== tagToRemove),
+      personality_tags: prev.personality_tags.filter(t => t !== tagToRemove),
+      custom_tags: prev.custom_tags.filter(t => t !== tagToRemove)
+    }));
   };
 
   useEffect(() => {
@@ -72,6 +121,7 @@ const AdminDashboard = () => {
       occasion_tags: product.occasion_tags || [],
       emotion_tags: product.emotion_tags || [],
       personality_tags: product.personality_tags || [],
+      custom_tags: product.custom_tags || [],
       expert_rating: product.expert_rating || 0,
       retailer_prices: product.retailer_prices || [],
       images: product.images || []
@@ -91,6 +141,7 @@ const AdminDashboard = () => {
       occasion_tags: [],
       emotion_tags: [],
       personality_tags: [],
+      custom_tags: [],
       expert_rating: 0,
       retailer_prices: [],
       images: []
@@ -197,6 +248,7 @@ const AdminDashboard = () => {
       submitData.append('occasion_tags', JSON.stringify(formData.occasion_tags));
       submitData.append('emotion_tags', JSON.stringify(formData.emotion_tags));
       submitData.append('personality_tags', JSON.stringify(formData.personality_tags));
+      submitData.append('custom_tags', JSON.stringify(formData.custom_tags));
 
       submitData.append('retailer_prices', JSON.stringify(formData.retailer_prices));
 
@@ -521,14 +573,45 @@ const AdminDashboard = () => {
                 {/* Category */}
                 <div>
                   <label className="block text-sm font-bold uppercase tracking-widest mb-2">Category *</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-black outline-none"
-                    placeholder="e.g., Jewelry, Accessories, Gadgets"
                     value={formData.category}
                     onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  />
+                  >
+                    <option value="">Select a category</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="fashion">Fashion</option>
+                    <option value="home_decor">Home Decor</option>
+                    <option value="books">Books</option>
+                    <option value="toys">Toys</option>
+                    <option value="beauty">Beauty</option>
+                    <option value="sports">Sports</option>
+                    <option value="others">Others</option>
+                    <option value="jewelry">Jewelry</option>
+                    <option value="gadgets">Gadgets</option>
+                    <option value="accessories">Accessories</option>
+                    <option value="stationery">Stationery</option>
+                    <option value="kitchen">Kitchen</option>
+                    <option value="outdoor">Outdoor</option>
+                    <option value="health">Health</option>
+                    <option value="automotive">Automotive</option>
+                    <option value="music">Music</option>
+                    <option value="art_crafts">Art & Crafts</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="pet_supplies">Pet Supplies</option>
+                    <option value="travel">Travel</option>
+                    <option value="baby_products">Baby Products</option>
+                    <option value="food_beverage">Food & Beverage</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="office_supplies">Office Supplies</option>
+                    <option value="gardening">Gardening</option>
+                    <option value="footwear">Footwear</option>
+                    <option value="watches">Watches</option>
+                    <option value="furniture">Furniture</option>
+                    <option value="appliances">Appliances</option>
+                    <option value="clothing">Clothing</option>
+                  </select>
                 </div>
 
                 {/* Description */}
@@ -659,6 +742,90 @@ const AdminDashboard = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Custom Tags Input */}
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 space-y-3">
+                  <h4 className="font-bold text-sm uppercase tracking-widest text-blue-900">Add Custom Tags</h4>
+                  <p className="text-xs text-blue-700">Add custom tags beyond the predefined options to uniquely describe this product</p>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => {
+                          setInput(e.target.value);
+                          setShowSuggestions(true);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addTag(input);
+                          }
+                        }}
+                        placeholder="Type a custom tag and press Enter..."
+                        className="flex-1 p-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-600 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => addTag(input)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {showSuggestions && (formData.custom_tags.length > 0 || input) && (
+                      <div className="bg-white border border-gray-300 rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
+                        {formData.custom_tags.length > 0 && (
+                          <>
+                            <p className="text-xs font-bold text-gray-700 px-1">Added Custom Tags:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {formData.custom_tags.map((tag, idx) => (
+                                <div
+                                  key={idx}
+                                  className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-2"
+                                >
+                                  {tag}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTag(tag)}
+                                    className="text-blue-500 hover:text-blue-700 font-bold"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                        {input && !formData.custom_tags.includes(input.toLowerCase().trim()) && (
+                          <p className="text-xs text-gray-400 px-1">Press Enter or click "Add" to add this tag</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {formData.custom_tags.length > 0 && !showSuggestions && (
+                    <div className="bg-white border border-blue-200 rounded-lg p-3">
+                      <p className="text-xs font-bold text-gray-700 mb-2">Custom Tags Added:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.custom_tags.map((tag, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-2"
+                          >
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => removeTag(tag)}
+                              className="text-blue-500 hover:text-blue-700 font-bold"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Retailer Prices Section - Same as before */}
@@ -677,8 +844,8 @@ const AdminDashboard = () => {
                 </div>
 
                 {formData.retailer_prices.length === 0 ? (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-700 text-sm">
-                    ⚠️ You must add at least one retailer with pricing information
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-700 text-sm flex items-center gap-2">
+                    <Info size={14} /> You must add at least one retailer with pricing information
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -754,7 +921,8 @@ const AdminDashboard = () => {
                             <label htmlFor={`exact-${idx}`} className="text-xs font-bold uppercase tracking-widest text-gray-600 cursor-pointer">
                               Exact Price
                             </label>
-                            <span className="text-xs text-gray-500" title="Uncheck if price is approximate/starting from">ℹ️</span>
+                            <span className="text-xs text-gray-500" title="Uncheck if price is approximate/starting from">
+                            <Info size={14} /></span>
                           </div>
                         </div>
 

@@ -18,6 +18,7 @@ export const createProduct = asyncHandler(async (req, res, next) => {
         occasion_tags,
         emotion_tags,
         personality_tags,
+        custom_tags,
         expert_rating
     } = req.body;
 
@@ -48,6 +49,7 @@ export const createProduct = asyncHandler(async (req, res, next) => {
     const parsedOccasionTags = parseTagArray(occasion_tags);
     const parsedEmotionTags = parseTagArray(emotion_tags);
     const parsedPersonalityTags = parseTagArray(personality_tags);
+    const parsedCustomTags = parseTagArray(custom_tags);
 
     // Validate at least one retailer
     if (!parsedRetailerPrices || parsedRetailerPrices.length === 0) {
@@ -71,6 +73,7 @@ export const createProduct = asyncHandler(async (req, res, next) => {
             occasion_tags: parsedOccasionTags,
             emotion_tags: parsedEmotionTags,
             personality_tags: parsedPersonalityTags,
+            custom_tags: parsedCustomTags,
             expert_rating: parseFloat(expert_rating) || 0,
             images
         });
@@ -105,6 +108,7 @@ export const updateProduct = asyncHandler(async (req, res, next) => {
         occasion_tags,
         emotion_tags,
         personality_tags,
+        custom_tags,
         expert_rating
     } = req.body;
 
@@ -149,11 +153,13 @@ export const updateProduct = asyncHandler(async (req, res, next) => {
     const parsedOccasionTags = parseTagArray(occasion_tags);
     const parsedEmotionTags = parseTagArray(emotion_tags);
     const parsedPersonalityTags = parseTagArray(personality_tags);
+    const parsedCustomTags = parseTagArray(custom_tags);
 
     if (parsedRelationTags !== undefined) product.relation_tags = parsedRelationTags;
     if (parsedOccasionTags !== undefined) product.occasion_tags = parsedOccasionTags;
     if (parsedEmotionTags !== undefined) product.emotion_tags = parsedEmotionTags;
     if (parsedPersonalityTags !== undefined) product.personality_tags = parsedPersonalityTags;
+    if (parsedCustomTags !== undefined) product.custom_tags = parsedCustomTags;
 
     // Handle new image uploads
     if (req.files && req.files.length > 0) {
@@ -244,5 +250,58 @@ export const getAllConsultations = asyncHandler(async (req, res, next) => {
         success: true,
         count: consultations.length,
         data: consultations
+    });
+});
+
+// Add custom tag to a specific product
+export const addCustomTag = asyncHandler(async (req, res, next) => {
+    const { productId, tag, tagType } = req.body; // tagType: 'relation', 'occasion', 'emotion', 'personality'
+
+    if (!tagType || !['relation_tags', 'occasion_tags', 'emotion_tags', 'personality_tags'].includes(tagType + '_tags')) {
+        return next(new errorHandler("Invalid tag type", 400));
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+        return next(new errorHandler("Product not found", 404));
+    }
+
+    const normalizedTag = tag.toLowerCase().trim();
+    const fieldName = tagType + '_tags';
+    
+    if (!product[fieldName].includes(normalizedTag)) {
+        product[fieldName].push(normalizedTag);
+        await product.save();
+    }
+
+    res.json({ 
+        success: true,
+        message: 'Tag added successfully', 
+        data: product 
+    });
+});
+
+// Get all tags by type
+export const getAllTags = asyncHandler(async (req, res) => {
+    const { tagType } = req.query; // relation, occasion, emotion, personality
+
+    let allTags = {};
+
+    if (!tagType || tagType === 'relation') {
+        allTags.relation_tags = await Product.distinct('relation_tags');
+    }
+    if (!tagType || tagType === 'occasion') {
+        allTags.occasion_tags = await Product.distinct('occasion_tags');
+    }
+    if (!tagType || tagType === 'emotion') {
+        allTags.emotion_tags = await Product.distinct('emotion_tags');
+    }
+    if (!tagType || tagType === 'personality') {
+        allTags.personality_tags = await Product.distinct('personality_tags');
+    }
+
+    res.json({ 
+        success: true,
+        data: allTags 
     });
 });

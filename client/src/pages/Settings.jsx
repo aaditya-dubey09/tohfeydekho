@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { setUser, logout } from '../redux/slices/authSlice';
-import { authAPI } from '../services/api';
+import { setUser } from '../redux/slices/authSlice';
+import { deleteAccount, logout as logoutThunk } from '../redux/slices/auth.thunk';
+import { useModal } from '../hooks/useModal';
+import Modal from '../components/ui/Modal';
 
 const Settings = () => {
     const { user } = useSelector(state => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { isOpen, modalConfig, showModal, closeModal } = useModal();
 
     const [formData, setFormData] = useState({
         fullName: user?.fullName || '',
@@ -105,24 +108,36 @@ const Settings = () => {
     };
 
     const handleDeleteAccount = async () => {
-        if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            return;
-        }
-
-        setLoading(true);
-        try {
-            await authAPI.deleteAccount();
-            dispatch(logout());
-            navigate('/');
-        } catch (error) {
-            const errorMsg = error.response?.data?.message || 'Failed to delete account';
-            setErrors({ submit: errorMsg });
-        } finally {
-            setLoading(false);
-        }
+        showModal({
+            title: 'Delete Account',
+            message: 'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.',
+            type: 'error',
+            confirmText: 'Delete Forever',
+            onConfirm: async () => {
+                setLoading(true);
+                try {
+                    dispatch(deleteAccount());
+                    navigate('/');
+                    showModal({
+                        title: 'Account Deleted',
+                        message: 'Your account has been permanently deleted',
+                        type: 'success'
+                    });
+                } catch (error) {
+                    showModal({
+                        title: 'Error',
+                        message: error.response?.data?.message || 'Failed to delete account',
+                        type: 'error'
+                    });
+                } finally {
+                    setLoading(false);
+                }
+            }
+        });
     };
 
     return (
+        <>
         <div className="max-w-2xl mx-auto mt-10 p-8 bg-gray-50 rounded-[2rem]">
             <h1 className="text-4xl font-black mb-2">Account Settings</h1>
             <p className="text-gray-600 mb-8">Manage your profile and password</p>
@@ -231,21 +246,41 @@ const Settings = () => {
                     </button>
                 </div>
 
-                {/* Delete Account Section */}
+                {/* Delete Account Section - Hidden by default */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
-                    <h2 className="text-xl font-bold mb-4 text-red-600">Danger Zone</h2>
-                    <button
-                        type="button"
-                        onClick={handleDeleteAccount}
-                        disabled={loading}
-                        className="w-full py-4 bg-red-600 text-white rounded-xl font-black text-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-                    >
-                        Delete Account Permanently
-                    </button>
-                    <p className="text-gray-600 text-sm mt-2">This action cannot be undone.</p>
+                    <details className="cursor-pointer group">
+                        <summary className="flex items-center justify-between py-3 px-4 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                            <span className="font-bold text-red-600">Danger Zone - Delete Account</span>
+                            <span className="text-red-600 group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200 space-y-4">
+                            <div>
+                                <h3 className="font-bold text-red-700 mb-2">Delete Account Permanently?</h3>
+                                <p className="text-gray-700 text-sm mb-4">Once you delete your account, all of your data will be permanently removed. This action cannot be undone.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleDeleteAccount}
+                                disabled={loading}
+                                className="w-full py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors disabled:opacity-50 text-sm"
+                            >
+                                {loading ? 'Deleting...' : 'Yes, Delete My Account'}
+                            </button>
+                        </div>
+                    </details>
                 </div>
             </form>
         </div>
+        <Modal
+                isOpen={isOpen}
+                onClose={closeModal}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onConfirm={modalConfig.onConfirm}
+                confirmText={modalConfig.confirmText}
+            />
+        </>
     );
 };
 

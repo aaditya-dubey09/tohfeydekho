@@ -6,47 +6,68 @@ import jwt from "jsonwebtoken";
 // Submit Quiz & Get Recommendations
 export const submitQuiz = asyncHandler(async (req, res, next) => {
     const quizData = req.body;
+    const userId = req.user._id; // From protect middleware
+    console.log('Quiz submission received for user:', userId);
+    console.log('Quiz data:', { quizData });
 
     // Get recommendations from your matching logic
     const recommendations = await getRecommendations(quizData);
+    console.log('Recommendations found:', recommendations.length);
 
-    // Optional: Identify user if token exists (without using 'protect' middleware)
-    let userId = null;
-    const token = req.cookies?.token;
+    try {
+        // Save result to DB with authenticated user
+        const quizResult = await QuizResult.create({
+            user: userId,
+            ...quizData,
+            recommended_products: recommendations.map(r => r._id)
+        });
+        console.log('Quiz result saved:', quizResult._id);
 
-    if (token) {
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            userId = decoded.id;
-        } catch (error) {
-            // Silently fail: user just won't have the quiz saved to their profile
-            console.error("Quiz Guest Mode: Invalid Token");
-        }
+        res.status(200).json({
+            success: true,
+            data: recommendations,
+            quizResultId: quizResult._id
+        });
+    } catch (error) {
+        console.error('Error saving quiz result:', error);
+        // Still return recommendations even if saving fails
+        res.status(200).json({
+            success: true,
+            data: recommendations,
+            warning: 'Recommendations loaded but could not save history'
+        });
     }
-
-    // Save result to DB
-    await QuizResult.create({
-        user: userId,
-        ...quizData,
-        recommended_products: recommendations.map(r => r._id)
-    });
-
-    res.status(200).json({
-        success: true,
-        data: recommendations
-    });
 });
 
 // Get User Quiz History
 export const getQuizHistory = asyncHandler(async (req, res, next) => {
+    console.log('Quiz history requested for user:', req.user._id);
+    
     // Here we use req.user._id because 'protect' middleware is applied
     const history = await QuizResult.find({ user: req.user._id })
         .populate('recommended_products')
         .sort({ createdAt: -1 });
 
+    console.log('Quiz history found:', history.length);
+
     res.status(200).json({
         success: true,
         count: history.length,
         data: history
+    });
+});
+
+// Clear User Quiz History
+export const clearQuizHistory = asyncHandler(async (req, res, next) => {
+    console.log('Clearing quiz history for user:', req.user._id);
+    
+    const result = await QuizResult.deleteMany({ user: req.user._id });
+    
+    console.log('Quiz history cleared:', result.deletedCount, 'entries deleted');
+
+    res.status(200).json({
+        success: true,
+        message: `Cleared ${result.deletedCount} quiz history entries`,
+        deletedCount: result.deletedCount
     });
 });

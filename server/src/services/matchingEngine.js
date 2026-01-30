@@ -30,7 +30,7 @@ const calculateScore = (product, quizData) => {
   if (personalityMatches > 0) {
     score += 1.0;
   }
-
+  // TODO: Consider removing expert rating from scoring criteria in future iterations after asking stakeholders.
   // 6. Expert rating (Weight: 0.5)
   score += (product.expert_rating / 5) * 0.5;
 
@@ -38,29 +38,47 @@ const calculateScore = (product, quizData) => {
 };
 
 const getRecommendations = async (quizData) => {
-  // Initial filtering: Relation and Budget
+  console.log('=== MATCHING ENGINE START ===');
+  console.log('Quiz data received:', quizData);
+  
+  // More lenient initial filtering: just get visible products
+  // We'll score them all and let the best ones rise to the top
   const products = await Product.find({
-    is_visible: true,
-    $or: [
-      { relation_tags: quizData.relation },
-      { relation_tags: 'universal' }
-    ],
-    budget_range: quizData.budget_segment
+    is_visible: true
   });
+
+  console.log('Total visible products found:', products.length);
+
+  if (products.length === 0) {
+    console.log('WARNING: No visible products in database!');
+    return [];
+  }
 
   const scoredProducts = products.map(product => ({
     product,
     score: calculateScore(product, quizData)
   }));
 
-  // Sort by score descending and take top 9
-  return scoredProducts
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 9)
+  console.log('Sample scores:', scoredProducts.slice(0, 3).map(sp => ({
+    name: sp.product.name,
+    score: sp.score,
+    relation_tags: sp.product.relation_tags,
+    budget_range: sp.product.budget_range
+  })));
+
+  // Sort by score descending and return ALL matching products (minimum score threshold: 1.0)
+  const recommendations = scoredProducts
+    .filter(item => item.score >= 1.0)  // At least some match
+    .sort((a, b) => b.score - a.score)  // Higher to lower score
     .map(item => ({
       ...item.product.toObject(),
       match_score: item.score.toFixed(1)
     }));
+
+  console.log('=== MATCHING ENGINE END ===');
+  console.log('Recommendations count:', recommendations.length);
+  
+  return recommendations;
 };
 
 export { getRecommendations };
