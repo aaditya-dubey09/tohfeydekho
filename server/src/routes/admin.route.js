@@ -6,7 +6,9 @@ import {
   deleteProduct,
   getAnalytics,
   getAllConsultations,
-  deleteProductImage
+  deleteProductImage,
+  addCustomTag,
+  getAllTags
 } from '../controllers/admin.controller.js';
 import { upload } from '../config/cloudinary.config.js';
 
@@ -33,6 +35,10 @@ router.delete('/products/:id', deleteProduct);
 
 // Route to delete just one image from a product gallery
 router.delete('/products/:id/image/:public_id', deleteProductImage);
+
+// Tag Routes
+router.post('/tags', addCustomTag);
+router.get('/tags', getAllTags);
 
 // Analytics & Data Routes
 router.get('/analytics', getAnalytics);

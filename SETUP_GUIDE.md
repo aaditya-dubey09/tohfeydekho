@@ -283,31 +283,6 @@ This was caused by React 18 StrictMode double-rendering effects. This is now fix
 
 ---
 
-## 📁 Project Structure Explained
-
-```
-backend/
-├── src/
-│   ├── config/          # Configuration files (DB, Cloudinary)
-│   ├── controllers/     # Route logic (business logic)
-│   ├── middleware/      # Authentication middleware
-│   ├── models/          # MongoDB schemas
-│   ├── routes/          # API routes
-│   ├── services/        # Business logic (matching engine)
-│   ├── utils/           # Helper functions
-│   └── server.js        # Main server file
-
-frontend/
-├── src/
-│   ├── components/      # Reusable React components
-│   ├── pages/          # Page components
-│   ├── redux/          # State management
-│   ├── services/       # API calls
-│   └── App.jsx         # Main app component
-```
-
----
-
 ## 🔄 API Endpoints Quick Reference
 
 ### Public Routes
@@ -406,10 +381,11 @@ frontend/
 
 ## 📞 Need Help?
 
-1. Check [CHANGELOG.md](CHANGELOG.md) for all fixes and changes
+1. Check [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) for platform folder structure.
 2. Check [README.md](README.md) for detailed documentation
 3. Review code comments in individual files
 4. Check browser console and server logs for errors
+5. Contact us at [@tohfeydekho](mailto:tohfeydekho@gmail.com)
 
 ---
 

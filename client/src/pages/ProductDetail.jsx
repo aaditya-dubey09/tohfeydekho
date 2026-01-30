@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ShieldCheck, Truck, ExternalLink, Heart, ShoppingCart } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart } from '../redux/slices/cartSlice';
+import { addToCartThunk } from '../redux/slices/cart.thunk';
 import { productsAPI } from '../services/api';
+import { useModal } from '../hooks/useModal';
+import Modal from '../components/ui/Modal';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -12,6 +14,13 @@ const ProductDetail = () => {
   const [activeImage, setActiveImage] = useState(0);
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.auth);
+  const { isOpen, modalConfig, showModal, closeModal } = useModal();
+  const { wishlist } = useSelector(state => state.products);
+  const [localWishlist, setLocalWishlist] = useState(new Set());
+
+  useEffect(() => {
+    setLocalWishlist(new Set(wishlist?.map(p => p._id) || []));
+  }, [wishlist]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -30,17 +39,35 @@ const ProductDetail = () => {
   if (loading) return <div className="py-20 text-center">Loading...</div>;
   if (!product) return <div className="py-20 text-center">Product not found</div>;
 
-  const handleWishlist = async () => {
-    if (!user) return alert('Please login to save to wishlist');
+  const handleWishlist = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      showModal({
+        title: 'Login Required',
+        message: 'Please login to save products to your wishlist',
+        type: 'warning'
+      });
+      return;
+    }
     try {
-      await productsAPI.toggleWishlist(id);
-      alert('Wishlist updated');
+      await productsAPI.toggleWishlist(product._id);
+      setLocalWishlist(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(product._id)) {
+          newSet.delete(product._id);
+        } else {
+          newSet.add(product._id);
+        }
+        return newSet;
+      });
     } catch (error) {
-      console.error(error);
+      console.error('Wishlist error:', error);
     }
   };
 
   return (
+    <>
     <div className="max-w-6xl mx-auto space-y-12">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Image Gallery */}
@@ -134,16 +161,20 @@ const ProductDetail = () => {
 
           <div className="flex gap-4">
             <button
-              onClick={() => dispatch(addToCart(product))}
+              onClick={() => dispatch(addToCartThunk(product._id))}
               className="flex-1 bg-black text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
             >
               <ShoppingCart size={20} /> Add to Cart
             </button>
             <button
-              onClick={handleWishlist}
-              className="p-4 border-2 border-gray-200 rounded-2xl hover:border-black transition-colors"
+              onClick={(e) => handleWishlist(e)}
+              className="p-4 rounded-2xl border-2 border-gray-200 hover:border-gray-300 hover:scale-105 transition-all duration-300 bg-white"
             >
-              <Heart size={24} />
+              <Heart 
+                size={24} 
+                fill={localWishlist.has(product._id) ? 'currentColor' : 'none'}
+                className={localWishlist.has(product._id) ? 'text-red-500' : 'text-gray-700'}
+              />
             </button>
           </div>
 
@@ -160,6 +191,14 @@ const ProductDetail = () => {
         </div>
       </div>
     </div>
+    <Modal
+        isOpen={isOpen}
+        onClose={closeModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
+    </>
   );
 };
 

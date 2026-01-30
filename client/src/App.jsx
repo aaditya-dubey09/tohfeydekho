@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { authAPI } from './services/api';
 import { setUser } from './redux/slices/authSlice';
+import { fetchCart } from './redux/slices/cart.thunk';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -33,6 +34,8 @@ function App() {
       try {
         const { data } = await authAPI.getProfile();
         dispatch(setUser(data.data));
+        // Fetch cart after user is authenticated
+        dispatch(fetchCart());
       } catch (error) {
         dispatch(setUser(null));
       } finally {

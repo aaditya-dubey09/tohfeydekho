@@ -50,53 +50,7 @@ A production-ready MERN stack application for personalized gift recommendations 
 - Node.js (v16+)
 - MongoDB (local or MongoDB Atlas)
 - Cloudinary account (free tier available)
-- Optional: Razorpay account for payment testing
-
-### 1. Backend Setup
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-```
-
-Edit `.env` with your values:
-
-```env
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/tohfey
-JWT_SECRET=your_super_secret_key_change_this
-FRONTEND_URL=http://localhost:5173
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-```
-
-Seed the database (creates admin user and sample products):
-
-```bash
-npm run seed
-```
-
-Start the backend:
-
-```bash
-npm run dev
-```
-
-### 2. Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### 3. Access the Application
-
-- Frontend: <http://localhost:5173>
-- Backend API: <http://localhost:5000>
+- Razorpay account for payment testing
 
 ## Default Admin Credentials
 
@@ -104,30 +58,6 @@ npm run dev
 - **Password:** adminpassword123
 
 Use these to access the admin dashboard at `/admin`
-
-## Project Structure
-
-```
-backend/
-├── src/
-│   ├── config/          # Database and Cloudinary config
-│   ├── controllers/     # Business logic for routes
-│   ├── middleware/      # Authentication middleware
-│   ├── models/          # MongoDB schemas
-│   ├── routes/          # API route definitions
-│   ├── services/        # Business logic services
-│   ├── utils/           # Helper functions
-│   └── server.js        # Express app entry point
-
-frontend/
-├── src/
-│   ├── components/      # Reusable React components
-│   ├── pages/          # Page components (Quiz, Results, etc.)
-│   ├── redux/          # Redux store and slices
-│   ├── services/       # API service layer
-│   ├── utils/          # Helper functions
-│   └── App.jsx         # Main app component
-```
 
 ## Key Features Explained
 
@@ -159,7 +89,6 @@ frontend/
 - `POST /api/auth/login` - User login
 - `GET /api/products` - Get all products
 - `GET /api/products/:id` - Get product details
-- `POST /api/quiz/submit` - Submit quiz answers
 
 #### Protected (Login Required)
 
@@ -168,6 +97,7 @@ frontend/
 - `POST /api/auth/logout` - User logout
 - `POST /api/products/:id/wishlist` - Toggle wishlist
 - `GET /api/products/wishlist/me` - Get user's wishlist
+- `POST /api/quiz/submit` - Submit quiz answers
 - `GET /api/quiz/history` - Get quiz history
 
 #### Admin Only
@@ -217,24 +147,8 @@ Recommended hosts: Vercel, Netlify
 - Use latest App.jsx with useRef guard
 - Clear cache if issue persists
 
-## Recent Updates (v3.1)
-
-- ✅ Fixed password hashing double-encryption issue
-- ✅ Completed admin dashboard with full CRUD operations
-- ✅ Added profile settings page for users
-- ✅ Fixed React 18 StrictMode double-effect auth spam
-- ✅ Implemented multi-image product upload
-- ✅ Added comprehensive admin analytics
-- ✅ Updated all documentation
-
-For detailed changelog, see [CHANGELOG.md](CHANGELOG.md)
-
 ## Support & Documentation
 
 - 📖 **Setup Guide:** See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed setup instructions
-- 📝 **Changelog:** See [CHANGELOG.md](CHANGELOG.md) for all changes and fixes
+- 📝 **Folder Structure:** See [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) for folder structure.
 - 🐛 **Issues:** Check SETUP_GUIDE.md troubleshooting section
-
-## License
-
-This project is open source and available under the MIT License.
