@@ -88,20 +88,12 @@ const Quiz = () => {
       
       console.log('Quiz submission unwrapped result:', result);
       
-      if (!result.recommendations || result.recommendations.length === 0) {
-        setIsSubmitting(false);
-        showModal({
-          title: 'No Recommendations Found',
-          message: 'We couldn\'t find any products matching your criteria. Please try adjusting your preferences.',
-          type: 'warning'
-        });
-        return;
-      }
-      
-      console.log('Navigating to results with recommendations:', result.recommendations.length);
+      console.log('Navigating to results with recommendations:', result.recommendations?.length || 0);
       navigate('/results', { 
         state: { 
-          recommendations: result.recommendations 
+          recommendations: result.recommendations || [],
+          matchType: result.matchType,
+          noPerfectMatch: result.noPerfectMatch
         } 
       });
     } catch (error) {

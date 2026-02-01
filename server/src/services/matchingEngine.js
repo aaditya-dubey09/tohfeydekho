@@ -51,7 +51,11 @@ const getRecommendations = async (quizData) => {
 
   if (products.length === 0) {
     console.log('WARNING: No visible products in database!');
-    return [];
+    return {
+      products: [],
+      matchType: 'none',
+      noPerfectMatch: true
+    };
   }
 
   const scoredProducts = products.map(product => ({
@@ -66,19 +70,52 @@ const getRecommendations = async (quizData) => {
     budget_range: sp.product.budget_range
   })));
 
+  const toScoredProducts = (items) => items.map(item => ({
+    ...item.product.toObject(),
+    match_score: item.score.toFixed(1)
+  }));
+
   // Sort by score descending and return ALL matching products (minimum score threshold: 1.0)
   const recommendations = scoredProducts
     .filter(item => item.score >= 1.0)  // At least some match
-    .sort((a, b) => b.score - a.score)  // Higher to lower score
-    .map(item => ({
-      ...item.product.toObject(),
-      match_score: item.score.toFixed(1)
-    }));
+    .sort((a, b) => b.score - a.score); // Higher to lower score
 
+  if (recommendations.length > 0) {
+    console.log('=== MATCHING ENGINE END ===');
+    console.log('Recommendations count:', recommendations.length);
+    return {
+      products: toScoredProducts(recommendations),
+      matchType: 'recommendations',
+      noPerfectMatch: false
+    };
+  }
+
+  // No direct recommendations; return closest matches with any score > 0
+  const closestMatches = scoredProducts
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (closestMatches.length > 0) {
+    console.log('=== MATCHING ENGINE END ===');
+    console.log('Closest matches count:', closestMatches.length);
+    return {
+      products: toScoredProducts(closestMatches),
+      matchType: 'closest',
+      noPerfectMatch: false
+    };
+  }
+
+  // No matches at all; return all visible products as fallback
   console.log('=== MATCHING ENGINE END ===');
-  console.log('Recommendations count:', recommendations.length);
-  
-  return recommendations;
+  console.log('No matches found; returning fallback products:', products.length);
+  return {
+    products: products.map(product => ({
+      ...product.toObject(),
+      match_score: null
+    })),
+    matchType: 'fallback',
+    noPerfectMatch: true
+  };
 };
 
 export { getRecommendations };

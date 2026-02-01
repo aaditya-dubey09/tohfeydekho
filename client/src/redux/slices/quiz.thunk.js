@@ -18,6 +18,8 @@ export const submitQuiz = createAsyncThunk(
       
       return {
         recommendations: data.data,
+        matchType: data.matchType,
+        noPerfectMatch: data.noPerfectMatch,
         quizResultId: data.quizResultId,
         timestamp: new Date().toISOString()
       };

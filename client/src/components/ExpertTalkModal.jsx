@@ -37,7 +37,7 @@ const ExpertTalkModal = ({ isOpen, onClose, source = 'browse' }) => {
       setIsLoading(true);
       await loadRazorpay();
 
-      const amount = 99; // INR
+      const amount = 29; // INR
       const { data } = await paymentsAPI.createOrder({
         amount,
         name: user.fullName,
@@ -123,7 +123,7 @@ const ExpertTalkModal = ({ isOpen, onClose, source = 'browse' }) => {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 z-40"
+        className="fixed inset-0 bg-black/50 z-40 h-full w-full"
         onClick={onClose}
       />
 
@@ -169,10 +169,10 @@ const ExpertTalkModal = ({ isOpen, onClose, source = 'browse' }) => {
             <div className="text-center">
               <p className="text-gray-600 text-sm mb-1">Consultation Fee</p>
               <div className="flex items-baseline justify-center gap-1">
-                <span className="text-4xl font-black">₹99</span>
-                <span className="text-gray-500 line-through">₹199</span>
+                <span className="text-4xl font-black">₹29</span>
+                <span className="text-gray-500">Only</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">50% Launch Offer</p>
+              <p className="text-xs text-gray-500 mt-1">Book your session now!</p>
             </div>
 
             <button

@@ -11,21 +11,23 @@ export const submitQuiz = asyncHandler(async (req, res, next) => {
     console.log('Quiz data:', { quizData });
 
     // Get recommendations from your matching logic
-    const recommendations = await getRecommendations(quizData);
-    console.log('Recommendations found:', recommendations.length);
+    const { products, matchType, noPerfectMatch } = await getRecommendations(quizData);
+    console.log('Recommendations found:', products.length);
 
     try {
         // Save result to DB with authenticated user
         const quizResult = await QuizResult.create({
             user: userId,
             ...quizData,
-            recommended_products: recommendations.map(r => r._id)
+            recommended_products: products.map(r => r._id)
         });
         console.log('Quiz result saved:', quizResult._id);
 
         res.status(200).json({
             success: true,
-            data: recommendations,
+            data: products,
+            matchType,
+            noPerfectMatch,
             quizResultId: quizResult._id
         });
     } catch (error) {
@@ -33,7 +35,9 @@ export const submitQuiz = asyncHandler(async (req, res, next) => {
         // Still return recommendations even if saving fails
         res.status(200).json({
             success: true,
-            data: recommendations,
+            data: products,
+            matchType,
+            noPerfectMatch,
             warning: 'Recommendations loaded but could not save history'
         });
     }

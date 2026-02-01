@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { productsAPI } from '../../services/api';
 import ProductCard from '../cards/ProductCard';
 
-const RecommendationsGrid = ({ recommendations, onAddToCart }) => {
+const RecommendationsGrid = ({ recommendations, onAddToCart, title, subtitle }) => {
   const navigate = useNavigate();
   const { user } = useSelector(state => state.auth);
   const { wishlist } = useSelector(state => state.products);
@@ -47,11 +47,14 @@ const RecommendationsGrid = ({ recommendations, onAddToCart }) => {
     );
   }
 
+  const resolvedTitle = title || 'Your Curated Picks';
+  const resolvedSubtitle = subtitle || `Based on your preferences, we found these ${recommendations.length} perfect products.`;
+
   return (
     <div className="space-y-12">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-2">Your Curated Picks</h1>
-        <p className="text-gray-600">Based on your preferences, we found these {recommendations.length} perfect products.</p>
+        <h1 className="text-4xl font-bold mb-2">{resolvedTitle}</h1>
+        <p className="text-gray-600">{resolvedSubtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { paymentsAPI } from '../services/api';
 import Modal from '../components/ui/Modal';
 import { useModal } from '../hooks/useModal';
@@ -9,7 +9,8 @@ import RecommendationsGrid from '../components/grids/RecommendationsGrid';
 const Results = () => {
   const location = useLocation();
   const recommendations = location.state?.recommendations || [];
-  const dispatch = useDispatch();
+  const matchType = location.state?.matchType || 'recommendations';
+  const noPerfectMatch = location.state?.noPerfectMatch || false;
   const { user } = useSelector(state => state.auth);
   const [bookingLoading, setBookingLoading] = useState(false);
   const { isOpen, modalConfig, showModal, closeModal } = useModal();
@@ -103,18 +104,31 @@ const Results = () => {
     }
   };
 
-  if (recommendations.length === 0) {
-    return (
-      <div className="text-center py-20 px-4">
-        <h2 className="text-2xl font-bold mb-4">No recommendations found.</h2>
-        <Link to="/quiz" className="text-blue-600 underline">Try the quiz again</Link>
-      </div>
-    );
-  }
+  const resultsTitle = matchType === 'closest'
+    ? 'Closest Matches We Found'
+    : matchType === 'fallback'
+      ? 'Other Products to Explore'
+      : 'Your Curated Picks';
+
+  const resultsSubtitle = matchType === 'closest'
+    ? 'We didn’t find exact matches, so these are the closest based on your answers.'
+    : matchType === 'fallback'
+      ? 'Here are some great options while we expand our catalog.'
+      : `Based on your preferences, we found these ${recommendations.length} perfect products.`;
 
   return (
     <div className="space-y-12 px-4">
-      <RecommendationsGrid recommendations={recommendations} />
+      {noPerfectMatch && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-900 rounded-2xl px-4 py-3 text-sm md:text-base">
+          We couldn’t find the perfect match yet as we’re growing our product database. Here are other great products to explore in the meantime.
+        </div>
+      )}
+
+      <RecommendationsGrid
+        recommendations={recommendations}
+        title={resultsTitle}
+        subtitle={resultsSubtitle}
+      />
 
       {/* Expert Consultation CTA - Always Visible */}
       <div className="bg-gradient-to-r from-black to-gray-900 text-white p-6 md:p-12 rounded-3xl text-center space-y-6 mt-12 border-2 border-yellow-500">
