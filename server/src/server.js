@@ -55,6 +55,24 @@ app.get('/api/healthcheck', (req, res) => {
     });
 })
 
+app.get('/api/test-ga', async (req, res) => {
+  console.log("Testing GA Connection...");
+  console.log("Property ID:", process.env.GA4_PROPERTY_ID);
+  console.log("Email:", process.env.GA4_CLIENT_EMAIL);
+  
+  try {
+    const [response] = await analyticsClient.runReport({
+      property: `properties/${process.env.GA4_PROPERTY_ID}`,
+      dateRanges: [{ startDate: 'yesterday', endDate: 'today' }],
+      metrics: [{ name: 'activeUsers' }],
+    });
+    res.json({ success: true, data: response });
+  } catch (err) {
+    console.error("DIAGNOSTIC ERROR:", err.message);
+    res.status(500).json({ error: err.message, details: err.code });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../redux/slices/authSlice';
 import { authAPI } from '../services/api';
+import ReactGA from "react-ga4";
 
 const Register = () => {
   const [formData, setFormData] = useState({ fullName: '', email: '', password: '' });
@@ -14,6 +15,11 @@ const Register = () => {
     try {
       const { data } = await authAPI.register(formData);
       dispatch(setUser(data.data));
+
+      ReactGA.event('sign_up', {
+        method: 'email'
+      });
+
       navigate('/');
     } catch (error) {
       alert(error.response?.data?.message || 'Registration failed');

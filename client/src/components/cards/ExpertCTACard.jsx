@@ -1,6 +1,16 @@
 import React from 'react';
+import ReactGA from 'react-ga4';
 
 const ExpertCTACard = ({ onBookClick }) => {
+  const handleClick = () => {
+    ReactGA.event('select_content', {
+      content_type: 'expert_consultation',
+      item_id: 'expert_talk_29',
+      source: 'cta_card'
+    });
+    onBookClick();
+  };
+
   return (
     <div className="bg-gradient-to-br from-black via-gray-900 to-black rounded-4xl px-8 md:px-10 py-12 md:py-16 text-center space-y-6 relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full -mr-16 -mt-16 group-hover:scale-200 transition-transform duration-300" />
@@ -14,7 +24,7 @@ const ExpertCTACard = ({ onBookClick }) => {
         </div>
         <div className="text-yellow-400 text-3xl font-black">₹29</div>
         <button
-          onClick={onBookClick}
+          onClick={handleClick}
           className="inline-block px-10 py-4 bg-yellow-400 text-black rounded-full font-black text-lg hover:bg-yellow-300 transition-all"
         >
           Book Now →

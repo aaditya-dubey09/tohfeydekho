@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, ArrowRight, Trash2 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchQuizHistory, clearQuizHistory } from '../redux/slices/quiz.thunk';
+import Modal from '../components/ui/Modal';
+import { useModal } from '../hooks/useModal';
 
 const QuizHistory = () => {
   const dispatch = useDispatch();
@@ -10,6 +12,7 @@ const QuizHistory = () => {
   const [isClearing, setIsClearing] = useState(false);
   const { user } = useSelector(state => state.auth);
   const { history, loading, error } = useSelector(state => state.quiz);
+  const { isOpen, modalConfig, showModal, closeModal } = useModal();
 
   useEffect(() => {
     // Check if user is logged in
@@ -24,7 +27,15 @@ const QuizHistory = () => {
   }, [user, navigate, dispatch]);
 
   const handleClearHistory = async () => {
-    if (!window.confirm('Are you sure you want to clear all quiz history? This action cannot be undone.')) {
+    if (
+      showModal({
+        title: 'Confirm Clear History',
+        message: 'Are you sure you want to clear your quiz history? This action cannot be undone.',
+        type: 'warning',
+        confirmText: 'Clear History',
+        cancelText: 'Cancel',
+      })
+    ) {
       return;
     }
 
@@ -56,6 +67,7 @@ const QuizHistory = () => {
   }
 
   return (
+    <>
     <div className="max-w-4xl mx-auto space-y-12 px-4">
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-black">Quiz History</h1>
@@ -141,7 +153,17 @@ const QuizHistory = () => {
           ))}
         </div>
       )}
-    </div>
+      </div>
+      <Modal
+        isOpen={isOpen}
+        onClose={closeModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        confirmText={modalConfig.confirmText}
+        cancelText={modalConfig.cancelText}
+      />
+    </>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import ReactGA from "react-ga4";
 import { useSelector, useDispatch } from 'react-redux';
 import { ShoppingCart, Heart, User, LogOut, Search, Gift, Settings, Menu, X } from 'lucide-react';
 import { logout as logoutThunk } from '../redux/slices/auth.thunk';
@@ -21,7 +22,13 @@ const Navbar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate('/browse', { state: { searchQuery } });
+      const term = searchQuery.trim();
+      navigate('/browse', { state: { searchQuery: term } });
+
+      ReactGA.event('search', {
+        search_term: term
+      });
+
       setSearchQuery('');
       setMobileMenuOpen(false);
     }
@@ -35,10 +42,15 @@ const Navbar = () => {
       onConfirm: async () => {
         try {
           dispatch(logoutThunk());
+
+          ReactGA.event('logout', {
+            method: 'navbar_button'
+          });
+
           navigate('/');
           setMobileMenuOpen(false);
         } catch (error) {
-            console.error('Logout failed', error);
+          console.error('Logout failed', error);
         }
       }
     });

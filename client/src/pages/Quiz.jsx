@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
+import ReactGA from 'react-ga4';
 import { submitQuiz } from '../redux/slices/quiz.thunk';
 import { useModal } from '../hooks/useModal';
 import Modal from '../components/ui/Modal';
@@ -71,42 +72,58 @@ const Quiz = () => {
   };
 
   const handleSubmit = async () => {
-    console.log('=== QUIZ FORM SUBMIT INITIATED ===');
-    console.log('User authenticated:', !!user);
-    console.log('User data:', user);
-    
     if (!user) {
-      console.log('User not logged in, redirecting to login');
       navigate('/login', { state: { from: '/quiz' } });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      console.log('Dispatching submitQuiz thunk');
       const result = await dispatch(submitQuiz(answers)).unwrap();
-      
-      console.log('Quiz submission unwrapped result:', result);
-      
-      console.log('Navigating to results with recommendations:', result.recommendations?.length || 0);
-      navigate('/results', { 
-        state: { 
-          recommendations: result.recommendations || [],
-          matchType: result.matchType,
-          noPerfectMatch: result.noPerfectMatch
-        } 
+
+      // 1. Primary Submission Event
+      ReactGA.event('quiz_submission', {
+        relation: answers.relation,
+        occasion: answers.occasion,
+        budget: answers.budget_segment,
+        recommendation_count: result.recommendations?.length || 0
       });
+
+      // 2. Individual Parameter Events for Detailed Tracking
+      ReactGA.event('quiz_relation_selected', { value: answers.relation });
+      ReactGA.event('quiz_occasion_selected', { value: answers.occasion });
+      ReactGA.event('quiz_budget_selected', { value: answers.budget_segment });
+      ReactGA.event('quiz_emotion_selected', { value: answers.emotion });
+
+      if (answers.personality_traits?.length > 0) {
+        ReactGA.event('quiz_personality_selected', {
+          traits: answers.personality_traits.join(', ')
+        });
+      }
+
+      /**
+        We add a slight delay (200ms) before navigating to give the 
+        browser time to process the GA4 network requests.
+       */
+      setTimeout(() => {
+        navigate('/results', {
+          state: {
+            recommendations: result.recommendations || [],
+            matchType: result.matchType,
+            noPerfectMatch: result.noPerfectMatch
+          }
+        });
+      }, 200);
+
     } catch (error) {
       console.error('Quiz submission error caught:', error);
-      
-      // Check if it's a 401 error (not authenticated)
+      setIsSubmitting(false);
+
       if (error?.status === 401) {
-        setIsSubmitting(false);
         navigate('/login', { state: { from: '/quiz' } });
         return;
       }
-      
-      setIsSubmitting(false);
+
       showModal({
         title: 'Submission Failed',
         message: error || 'Failed to get recommendations. Please try again.',
@@ -117,7 +134,6 @@ const Quiz = () => {
 
   const currentQuestion = questions[step];
 
-  // Defensive check: ensure currentQuestion exists
   if (!currentQuestion) {
     return (
       <div className="max-w-2xl mx-auto mt-20 px-4">
@@ -128,73 +144,73 @@ const Quiz = () => {
 
   return (
     <>
-    <div className="max-w-2xl mx-auto mt-12 md:mt-20 px-4 pb-20">
-      <div className="mb-8 bg-gray-200 h-2 rounded-full overflow-hidden">
-        <div
-          className="bg-black h-full transition-all duration-300"
-          style={{ width: `${((step + 1) / (questions.length + 1)) * 100}%` }}
-        />
-      </div>
+      <div className="max-w-2xl mx-auto mt-12 md:mt-20 px-4 pb-20">
+        <div className="mb-8 bg-gray-200 h-2 rounded-full overflow-hidden">
+          <div
+            className="bg-black h-full transition-all duration-300"
+            style={{ width: `${((step + 1) / (questions.length + 1)) * 100}%` }}
+          />
+        </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          className="space-y-6 md:space-y-8"
-        >
-          <h2 className="text-2xl md:text-3xl font-bold">{currentQuestion.question}</h2>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6 md:space-y-8"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold">{currentQuestion.question}</h2>
 
-          <div className="grid grid-cols-1 gap-3 md:gap-4">
-            {currentQuestion.options.map((option) => {
-              const label = typeof option === 'string' ? option : option.label;
-              const value = typeof option === 'string' ? option : option.value;
-              const isSelected = currentQuestion.multiple
-                ? answers.personality_traits.includes(value)
-                : answers[currentQuestion.id] === value;
+            <div className="grid grid-cols-1 gap-3 md:gap-4">
+              {currentQuestion.options.map((option) => {
+                const label = typeof option === 'string' ? option : option.label;
+                const value = typeof option === 'string' ? option : option.value;
+                const isSelected = currentQuestion.multiple
+                  ? answers.personality_traits.includes(value)
+                  : answers[currentQuestion.id] === value;
 
-              return (
-                <button
-                  key={value}
-                  onClick={() => handleOptionSelect(value)}
-                  className={`p-4 md:p-6 text-left border-2 rounded-xl transition-all ${isSelected ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-black'
-                    }`}
-                >
-                  <span className="capitalize text-sm md:text-base">{label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {currentQuestion.multiple && step < questions.length - 1 && (
-            <button
-              onClick={() => setStep(step + 1)}
-              className="w-full py-3 md:py-4 bg-black text-white rounded-xl font-bold text-sm md:text-base"
-            >
-              Next
-            </button>
-          )}
-
-          {step === questions.length - 1 && (
-            <div className="space-y-4">
-              <textarea
-                placeholder="Any optional notes? (e.g., 'They love blue color')"
-                className="w-full p-3 md:p-4 border-2 border-gray-200 rounded-xl text-sm md:text-base"
-                onChange={(e) => setAnswers({ ...answers, optional_note: e.target.value })}
-                />
-              <button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full py-3 md:py-4 bg-black text-white rounded-xl font-bold text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Finding Your Perfect Gifts...' : 'Find My Perfect Gift'}
-            </button>
+                return (
+                  <button
+                    key={value}
+                    onClick={() => handleOptionSelect(value)}
+                    className={`p-4 md:p-6 text-left border-2 rounded-xl transition-all ${isSelected ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-black'
+                      }`}
+                  >
+                    <span className="capitalize text-sm md:text-base">{label}</span>
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </div>
+
+            {currentQuestion.multiple && step < questions.length - 1 && (
+              <button
+                onClick={() => setStep(step + 1)}
+                className="w-full py-3 md:py-4 bg-black text-white rounded-xl font-bold text-sm md:text-base"
+              >
+                Next
+              </button>
+            )}
+
+            {step === questions.length - 1 && (
+              <div className="space-y-4">
+                <textarea
+                  placeholder="Any optional notes? (e.g., 'They love blue color')"
+                  className="w-full p-3 md:p-4 border-2 border-gray-200 rounded-xl text-sm md:text-base"
+                  onChange={(e) => setAnswers({ ...answers, optional_note: e.target.value })}
+                />
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="w-full py-3 md:py-4 bg-black text-white rounded-xl font-bold text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Finding Your Perfect Gifts...' : 'Find My Perfect Gift'}
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
       <Modal
         isOpen={isOpen}
         onClose={closeModal}

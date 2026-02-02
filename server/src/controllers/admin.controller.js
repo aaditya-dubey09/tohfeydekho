@@ -3,6 +3,7 @@ import { Consultation, QuizResult } from '../models/User.model.js';
 import { asyncHandler } from '../utils/asyncHandler.utility.js';
 import { errorHandler } from '../utils/errorHandler.utility.js';
 import cloudinary from '../config/cloudinary.config.js';
+import { fetchGA4Data, fetchEventDetails } from '../config/analytics.config.js';
 
 // --- Product CRUD ---
 
@@ -221,12 +222,18 @@ export const deleteProductImage = asyncHandler(async (req, res, next) => {
 // --- Analytics & Consultations ---
 
 export const getAnalytics = asyncHandler(async (req, res, next) => {
+    const { startDate = '30daysAgo', endDate = 'today' } = req.query;
+
+    // Fetch database stats
     const [totalProducts, totalQuizzes, totalConsultations, productStats] = await Promise.all([
         Product.countDocuments(),
         QuizResult.countDocuments(),
         Consultation.countDocuments({ status: 'paid' }),
         Product.find().select('name views wishlist_count cart_count').sort({ views: -1 }).limit(10)
     ]);
+
+    // Fetch GA4 data
+    const ga4Data = await fetchGA4Data(startDate, endDate);
 
     res.status(200).json({
         success: true,
@@ -236,7 +243,8 @@ export const getAnalytics = asyncHandler(async (req, res, next) => {
                 totalQuizzes,
                 totalConsultations
             },
-            productStats
+            productStats,
+            ga4: ga4Data
         }
     });
 });

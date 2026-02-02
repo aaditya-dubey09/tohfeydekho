@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import ReactGA from 'react-ga4';
 import { paymentsAPI } from '../services/api';
 import Modal from '../components/ui/Modal';
 import { useModal } from '../hooks/useModal';
@@ -34,11 +35,32 @@ const Results = () => {
       return;
     }
 
+    /**
+      Used standard 'begin_checkout' for better funnel tracking
+     */
+    ReactGA.event('begin_checkout', {
+      content_type: 'expert_consultation',
+      value: 29,
+      currency: 'INR',
+      items: [{
+        item_id: 'consultation_001',
+        item_name: 'Expert Consultation',
+        price: 29,
+        quantity: 1
+      }]
+    });
+
+    // Custom event for backend dashboard query
+    ReactGA.event('expert_booking_intent', {
+      source: 'results_page',
+      price: 29
+    });
+
     try {
       setBookingLoading(true);
       await loadRazorpay();
 
-      const amount = 29; // INR
+      const amount = 29;
       const { data } = await paymentsAPI.createOrder({
         amount,
         name: user.fullName,
@@ -71,6 +93,17 @@ const Results = () => {
               razorpay_signature: response.razorpay_signature
             });
 
+            /**
+              Track successful purchase/verification
+              This matches the 'expert_events' query in backend
+             */
+            ReactGA.event('expert_payment_success', {
+              transaction_id: response.razorpay_payment_id,
+              value: 29,
+              currency: 'INR',
+              source: 'results_page'
+            });
+
             const calUrl = verifyRes.data?.calBookingUrl;
             if (calUrl) {
               window.location.href = calUrl;
@@ -83,6 +116,10 @@ const Results = () => {
             }
           } catch (err) {
             console.error(err);
+            ReactGA.event('expert_payment_failed', {
+              error_type: 'verification_error',
+              order_id: response.razorpay_order_id
+            });
           }
         },
         theme: {

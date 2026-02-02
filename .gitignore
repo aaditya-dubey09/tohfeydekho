@@ -20,3 +20,7 @@ Thumbs.db
 
 # IDE files
 .vscode/
+
+# Google Analytics Service Account Key (NEVER COMMIT THIS!)
+google-analytics-key.json
+**/google-analytics-key.json

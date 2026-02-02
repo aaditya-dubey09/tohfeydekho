@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit, BarChart3, Package, MessageSquare, X, Upload, Tag, Info } from 'lucide-react';
+import { Plus, Trash2, Edit, BarChart3, Package, MessageSquare, X, Upload, Tag } from 'lucide-react';
 import { adminAPI, productsAPI } from '../services/api';
+import AnalyticsSection from '../components/sections/AnalyticsSection';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('analytics');
@@ -52,7 +53,7 @@ const AdminDashboard = () => {
 
     // Check if it's a predefined tag or a custom tag
     const isPredefined = Object.values(tagOptions).some(tagList => tagList.includes(tag));
-    
+
     if (isPredefined) {
       // Add to appropriate predefined tag category
       Object.entries(tagOptions).forEach(([key, tagList]) => {
@@ -71,7 +72,7 @@ const AdminDashboard = () => {
         custom_tags: [...prev.custom_tags, normalizedTag]
       }));
     }
-    
+
     setInput('');
     setShowSuggestions(false);
   };
@@ -343,50 +344,9 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Analytics Tab - Same as before */}
+        {/* Analytics Tab */}
         {activeTab === 'analytics' && analytics && (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Total Products</p>
-                <p className="text-4xl font-black mt-2">{analytics.summary.totalProducts}</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Quiz Submissions</p>
-                <p className="text-4xl font-black mt-2">{analytics.summary.totalQuizzes}</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Consultations</p>
-                <p className="text-4xl font-black mt-2">{analytics.summary.totalConsultations}</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 bg-gray-50 border-b">
-                <h3 className="font-bold text-lg">Top Products</h3>
-              </div>
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="px-6 py-4 font-bold text-sm">Product Name</th>
-                    <th className="px-6 py-4 font-bold text-sm">Views</th>
-                    <th className="px-6 py-4 font-bold text-sm">Wishlists</th>
-                    <th className="px-6 py-4 font-bold text-sm">Carts</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {analytics.productStats && analytics.productStats.map((stat, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium">{stat.name}</td>
-                      <td className="px-6 py-4 text-gray-600">{stat.views || 0}</td>
-                      <td className="px-6 py-4 text-gray-600">{stat.wishlist_count || 0}</td>
-                      <td className="px-6 py-4 text-gray-600">{stat.cart_count || 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <AnalyticsSection analytics={analytics} />
         )}
 
         {/* Products Tab */}
@@ -516,10 +476,10 @@ const AdminDashboard = () => {
                       </div>
                       <span
                         className={`px-4 py-1 rounded-full text-xs font-bold uppercase whitespace-nowrap ${c.status === 'paid'
-                            ? 'bg-green-100 text-green-700'
-                            : c.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-red-100 text-red-700'
+                          ? 'bg-green-100 text-green-700'
+                          : c.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
                           }`}
                       >
                         {c.status}
@@ -673,8 +633,8 @@ const AdminDashboard = () => {
                         type="button"
                         onClick={() => toggleTag('relation_tags', tag)}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${formData.relation_tags.includes(tag)
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
                         {tag}
@@ -693,8 +653,8 @@ const AdminDashboard = () => {
                         type="button"
                         onClick={() => toggleTag('occasion_tags', tag)}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${formData.occasion_tags.includes(tag)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
                         {tag}
@@ -713,8 +673,8 @@ const AdminDashboard = () => {
                         type="button"
                         onClick={() => toggleTag('emotion_tags', tag)}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${formData.emotion_tags.includes(tag)
-                            ? 'bg-pink-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-pink-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
                         {tag}
@@ -733,8 +693,8 @@ const AdminDashboard = () => {
                         type="button"
                         onClick={() => toggleTag('personality_tags', tag)}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${formData.personality_tags.includes(tag)
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
                         {tag}
@@ -922,7 +882,7 @@ const AdminDashboard = () => {
                               Exact Price
                             </label>
                             <span className="text-xs text-gray-500" title="Uncheck if price is approximate/starting from">
-                            <Info size={14} /></span>
+                              <Info size={14} /></span>
                           </div>
                         </div>
 

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { paymentsAPI } from '../services/api';
 import { useModal } from '../hooks/useModal';
+import ReactGA from "react-ga4";
 import Modal from './ui/Modal';
 
 const ExpertTalkModal = ({ isOpen, onClose, source = 'browse' }) => {
@@ -32,6 +33,17 @@ const ExpertTalkModal = ({ isOpen, onClose, source = 'browse' }) => {
       });
       return;
     }
+
+    ReactGA.event('begin_checkout', {
+      currency: 'INR',
+      value: 29,
+      items: [{
+        item_name: 'Expert Gift Consultation',
+        item_id: 'expert_talk_29',
+        price: 29,
+        quantity: 1
+      }]
+    });
 
     try {
       setIsLoading(true);
@@ -72,24 +84,36 @@ const ExpertTalkModal = ({ isOpen, onClose, source = 'browse' }) => {
             });
 
             const calUrl = verifyRes.data?.calBookingUrl;
-            
-            // Close all modals
+
+            // GA4 STANDARD PURCHASE EVENT
+            ReactGA.event('purchase', {
+              transaction_id: response.razorpay_payment_id,
+              value: 29.00,
+              currency: 'INR',
+              items: [{
+                item_id: 'expert_talk_29',
+                item_name: 'Expert Gift Consultation',
+                item_category: 'Consultation',
+                price: 29.00,
+                quantity: 1
+              }]
+            });
+
             onClose();
             closeModal();
-            
+
             if (calUrl) {
-              // Redirect to booking page
-              window.location.href = calUrl;
+              // Small delay to ensure tracking beacon is sent
+              setTimeout(() => {
+                window.location.href = calUrl;
+              }, 300);
             } else {
               showModal({
                 title: 'Booking Successful',
-                message: 'Payment verified! You will be redirected to book your consultation slot.',
+                message: 'Redirecting to home...',
                 type: 'success'
               });
-              // Redirect to home after 2 seconds
-              setTimeout(() => {
-                navigate('/');
-              }, 2000);
+              setTimeout(() => navigate('/'), 2000);
             }
           } catch (err) {
             console.error('Verification error:', err);
