@@ -17,39 +17,40 @@ const QuizHistory = () => {
   useEffect(() => {
     // Check if user is logged in
     if (!user) {
-      console.log('User not logged in, redirecting to login');
       navigate('/login');
       return;
     }
 
-    console.log('Fetching quiz history for user:', user._id);
     dispatch(fetchQuizHistory());
   }, [user, navigate, dispatch]);
 
   const handleClearHistory = async () => {
-    if (
       showModal({
         title: 'Confirm Clear History',
         message: 'Are you sure you want to clear your quiz history? This action cannot be undone.',
         type: 'warning',
         confirmText: 'Clear History',
         cancelText: 'Cancel',
+        onConfirm: async () => {
+          closeModal();
+          setIsClearing(true);
+          try {
+            await dispatch(clearQuizHistory()).unwrap();
+            // Refreshes the history after clearing
+            dispatch(fetchQuizHistory());
+          } catch (error) {
+            console.error('Failed to clear history:', error);
+            showModal({
+              title: 'Error',
+              message: 'Failed to clear quiz history. Please try again later.',
+              type: 'error',
+              confirmText: 'OK'
+            })
+          } finally {
+            setIsClearing(false);
+          }
+        }
       })
-    ) {
-      return;
-    }
-
-    setIsClearing(true);
-    try {
-      await dispatch(clearQuizHistory()).unwrap();
-      // Refresh the history after clearing
-      dispatch(fetchQuizHistory());
-    } catch (error) {
-      console.error('Failed to clear history:', error);
-      alert('Failed to clear history. Please try again.');
-    } finally {
-      setIsClearing(false);
-    }
   };
 
   if (loading) return <div className="py-20 text-center max-w-4xl mx-auto">Loading...</div>;
