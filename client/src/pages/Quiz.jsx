@@ -81,25 +81,16 @@ const Quiz = () => {
     try {
       const result = await dispatch(submitQuiz(answers)).unwrap();
 
-      // 1. Primary Submission Event
+      // Submission Event
       ReactGA.event('quiz_submission', {
-        relation: answers.relation,
-        occasion: answers.occasion,
-        budget: answers.budget_segment,
-        recommendation_count: result.recommendations?.length || 0
+        quiz_relation_selected: answers.relation,
+        quiz_occasion_selected: answers.occasion,
+        quiz_budget_selected: answers.budget_segment,
+        quiz_emotion_selected: answers.emotion,
+        quiz_personality_selected: answers.personality_traits?.join(', ') || 'none',
+        recommendation_count: result.recommendations?.length || 0,
+        source: 'web_quiz'
       });
-
-      // 2. Individual Parameter Events for Detailed Tracking
-      ReactGA.event('quiz_relation_selected', { value: answers.relation });
-      ReactGA.event('quiz_occasion_selected', { value: answers.occasion });
-      ReactGA.event('quiz_budget_selected', { value: answers.budget_segment });
-      ReactGA.event('quiz_emotion_selected', { value: answers.emotion });
-
-      if (answers.personality_traits?.length > 0) {
-        ReactGA.event('quiz_personality_selected', {
-          traits: answers.personality_traits.join(', ')
-        });
-      }
 
       /**
         We add a slight delay (200ms) before navigating to give the 

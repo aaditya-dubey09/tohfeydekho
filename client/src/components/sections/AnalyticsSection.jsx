@@ -1,5 +1,5 @@
 import React from 'react';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 import { Info } from 'lucide-react';
 import {
     Chart as ChartJS,
@@ -10,7 +10,8 @@ import {
     BarElement,
     Title,
     Tooltip,
-    Legend
+    Legend,
+    ArcElement
 } from 'chart.js';
 
 // Register ChartJS components
@@ -20,6 +21,7 @@ ChartJS.register(
     PointElement,
     LineElement,
     BarElement,
+    ArcElement,
     Title,
     Tooltip,
     Legend
@@ -29,6 +31,7 @@ const AnalyticsSection = ({ analytics }) => {
     if (!analytics) return null;
 
     const { ga4, productStats } = analytics;
+    // console.log('Frontend analytics data:', analytics)
 
     return (
         <div className="space-y-8">
@@ -215,24 +218,188 @@ const AnalyticsSection = ({ analytics }) => {
                         )}
                     </div>
 
-                    {/* Quiz Details */}
-                    {ga4.quizDetails && ga4.quizDetails.length > 0 && (
+                    {/* Quiz Details - Pie Charts */}
+                    {ga4.quizDetails && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {/* Relations Pie Chart */}
+                            {ga4.quizDetails.relations && ga4.quizDetails.relations.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                    <h3 className="font-bold text-lg mb-6 text-center">Top Relations</h3>
+                                    <div className="h-80">
+                                        <Pie
+                                            data={{
+                                                labels: ga4.quizDetails.relations.map(r => r.dimensions[0]),
+                                                datasets: [{
+                                                    data: ga4.quizDetails.relations.map(r => r.metrics[0]),
+                                                    backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'],
+                                                    borderColor: '#fff',
+                                                    borderWidth: 2
+                                                }]
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: { legend: { position: 'bottom' } }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Occasions Pie Chart */}
+                            {ga4.quizDetails.occasions && ga4.quizDetails.occasions.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                    <h3 className="font-bold text-lg mb-6 text-center">Top Occasions</h3>
+                                    <div className="h-80">
+                                        <Pie
+                                            data={{
+                                                labels: ga4.quizDetails.occasions.map(o => o.dimensions[0]),
+                                                datasets: [{
+                                                    data: ga4.quizDetails.occasions.map(o => o.metrics[0]),
+                                                    backgroundColor: ['#06b6d4', '#ec4899', '#f97316', '#84cc16', '#0ea5e9'],
+                                                    borderColor: '#fff',
+                                                    borderWidth: 2
+                                                }]
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: { legend: { position: 'bottom' } }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Budget Pie Chart */}
+                            {ga4.quizDetails.budgets && ga4.quizDetails.budgets.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                    <h3 className="font-bold text-lg mb-6 text-center">Budget Ranges</h3>
+                                    <div className="h-80">
+                                        <Pie
+                                            data={{
+                                                labels: ga4.quizDetails.budgets.map(b => b.dimensions[0]),
+                                                datasets: [{
+                                                    data: ga4.quizDetails.budgets.map(b => b.metrics[0]),
+                                                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                                                    borderColor: '#fff',
+                                                    borderWidth: 2
+                                                }]
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: { legend: { position: 'bottom' } }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Emotions Pie Chart */}
+                            {ga4.quizDetails.emotions && ga4.quizDetails.emotions.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                    <h3 className="font-bold text-lg mb-6 text-center">Emotions Selected</h3>
+                                    <div className="h-80">
+                                        <Pie
+                                            data={{
+                                                labels: ga4.quizDetails.emotions.map(e => e.dimensions[0]),
+                                                datasets: [{
+                                                    data: ga4.quizDetails.emotions.map(e => e.metrics[0]),
+                                                    backgroundColor: ['#ec4899', '#a855f7', '#6366f1', '#06b6d4', '#14b8a6'],
+                                                    borderColor: '#fff',
+                                                    borderWidth: 2
+                                                }]
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: { legend: { position: 'bottom' } }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Personality Traits Pie Chart */}
+                            {ga4.quizDetails.personalities && ga4.quizDetails.personalities.length > 0 && (
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                    <h3 className="font-bold text-lg mb-6 text-center">Personality Traits</h3>
+                                    <div className="h-80">
+                                        <Pie
+                                            data={{
+                                                labels: ga4.quizDetails.personalities.map(p => p.dimensions[0]),
+                                                datasets: [{
+                                                    data: ga4.quizDetails.personalities.map(p => p.metrics[0]),
+                                                    backgroundColor: ['#f59e0b', '#06b6d4', '#10b981', '#ef4444', '#8b5cf6'],
+                                                    borderColor: '#fff',
+                                                    borderWidth: 2
+                                                }]
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: { legend: { position: 'bottom' } }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Top Search Terms */}
+                    {ga4.searchTerms && ga4.searchTerms.length > 0 && (
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                            <h3 className="font-bold text-lg mb-4">Quiz Details (Relations & Occasions)</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {ga4.quizDetails.map((detail, idx) => {
-                                    const displayValue = (val) => val === '(not set)' ? 'General Activity' : val;
-                                    const dimensionText = displayValue(detail.dimensions[0]) || displayValue(detail.dimensions[1]) || 'Unknown';
-                                    return (
-                                        <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                            <span className="text-sm font-medium">{dimensionText}</span>
-                                            <span className="font-bold text-indigo-600">{detail.metrics[0]}</span>
-                                        </div>
-                                    );
-                                })}
+                            <h3 className="font-bold text-xl mb-6">Top Search Terms</h3>
+                            <div className="space-y-3">
+                                {ga4.searchTerms.slice(0, 10).map((term, idx) => (
+                                    <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                        <span className="text-sm font-medium">{term.dimensions[0]}</span>
+                                        <span className="font-bold text-orange-600">{term.metrics[0]}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
+
+                    {/* Sign Ups, Wishlist, Cart Summary */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {ga4.signUps && ga4.signUps.length > 0 && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                <h3 className="font-bold text-lg mb-4">New Sign Ups</h3>
+                                <p className="text-4xl font-black text-green-600">{ga4.signUps[0]?.metrics[0] || 0}</p>
+                            </div>
+                        )}
+
+                        {ga4.wishlist && ga4.wishlist.length > 0 && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                <h3 className="font-bold text-lg mb-4">Wishlist Actions</h3>
+                                <div className="space-y-2">
+                                    {ga4.wishlist.map((event, idx) => (
+                                        <div key={idx} className="flex justify-between items-center">
+                                            <span className="text-sm font-medium">{event.dimensions[0]}</span>
+                                            <span className="font-bold text-purple-600">{event.metrics[0]}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {ga4.cart && ga4.cart.length > 0 && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                                <h3 className="font-bold text-lg mb-4">Cart Actions</h3>
+                                <div className="space-y-2">
+                                    {ga4.cart.map((event, idx) => (
+                                        <div key={idx} className="flex justify-between items-center">
+                                            <span className="text-sm font-medium">{event.dimensions[0]}</span>
+                                            <span className="font-bold text-blue-600">{event.metrics[0]}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </>
             )}
 
